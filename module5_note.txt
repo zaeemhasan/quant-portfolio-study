@@ -1,0 +1,30 @@
+What landed well
+
+The VaR table correctly shows historical simulation as the primary method and bolds it
+Beta chart is clean — the color coding tells the story immediately
+Limitations section reads like it was written by someone who knows what they're talking about, not someone covering their tracks
+The footnote linking back to GitHub ties the whole thing together professionally
+
+One honest critique of the memo itself
+The VaR numbers shifted between Module 2 and the memo — Module 2 showed -3.37% historical VaR but the memo shows -4.56%. That's because PORTFOLIO_VALUE was hardcoded at $123 in Module 2 but the memo pulled the actual current portfolio value dynamically from the CSVs, which is higher now. The percentage VaR is what matters and that's consistent. Flag this in the README as the dynamic vs static discrepancy we already identified.
+
+Setup:
+
+Create a new project on Posit Cloud
+Upload the .Rmd file
+Upload the six CSVs from your Google Drive quant-project folder directly into the Posit project — module1_prices.csv, module1_returns.csv, module1_per_ticker_perf.csv, module2_risk_summary.csv, module2_betas.csv, module3_signals.csv
+Click Knit — it installs its own packages and compiles to PDF automatically
+
+What the memo contains:
+
+Executive summary with hardcoded conclusions drawn from your actual numbers
+Full position table pulled live from the CSVs
+Cumulative return chart vs SPY rendered in ggplot2
+VaR comparison table across all three methods
+Beta chart per ticker
+Signal dashboard table as of today
+Limitations section — honest, professional, exactly what a real committee expects
+Numbered conclusions with specific watch flags on AVGO and MRVL
+
+The numbers auto-populate from your CSVs — Sharpe, alpha, VaR, total return all pull dynamically. If you re-run Modules 1-3 next month, knitting the memo again gives you an updated document automatically.
+

@@ -1,0 +1,13 @@
+Metric,Value
+VaR 95% Historical,-0.0456
+VaR 99% Historical,-0.0606
+VaR 95% Parametric,-0.0387
+VaR 99% Parametric,-0.0566
+CVaR 95% Historical,-0.0549
+Portfolio Beta,2.1906
+Alpha (ann.),0.9699
+Sharpe Ratio,2.5983
+Sortino Ratio,3.8461
+Treynor Ratio,0.4947
+Ann. Volatility,0.4170
+Ann. Return,1.1286
