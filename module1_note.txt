@@ -24,5 +24,4 @@ Plotted — matplotlib took those series directly and drew the lines
 
 On benchmark collection:
 SPY was pulled in the exact same yf.download() call as your tickers — just one extra string in the list. Same API, same date range, same format. Then we calculated how many SPY shares $66.63 would have bought on Aug 8 and tracked that forward.
-On Colab + links:
-Yes, Colab has full internet access by default. yfinance works because it's just making HTTP requests to Yahoo Finance's backend — same as your browser would. You can also !pip install anything, wget files, hit APIs, even mount Google Drive. The only things blocked are things that require a local filesystem or GUI outside the notebook.
+
