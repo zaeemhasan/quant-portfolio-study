@@ -1,4 +1,8 @@
 # quant-portfolio-study
+
+document April 8 2026 as a regime change - Iran 2 week ceasefire into rolling beta analysis
+
+
 Module 3 signals as of Apr 8 2026 show no RSI extremes across the portfolio, consistent with a macro volatility event compressing momentum signals. AVGO and MRVL flagged as bearish outliers.
 
 Module 3 done. A few things to note before you run it:
