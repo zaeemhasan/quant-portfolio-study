@@ -1,4 +1,6 @@
 # quant-portfolio-study
+Module 3 signals as of Apr 8 2026 show no RSI extremes across the portfolio, consistent with a macro volatility event compressing momentum signals. AVGO and MRVL flagged as bearish outliers.
+
 Module 3 done. A few things to note before you run it:
 This one always re-pulls — no CSV dependency on Modules 1 or 2. Every run gives you fresh signals as of today. That's intentional — signals go stale, prices don't.
 What to look for in the output:
