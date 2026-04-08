@@ -1,7 +1,13 @@
 # quant-portfolio-study
+Module 3 done. A few things to note before you run it:
+This one always re-pulls — no CSV dependency on Modules 1 or 2. Every run gives you fresh signals as of today. That's intentional — signals go stale, prices don't.
+What to look for in the output:
 
-Honest limitation to log: 
-The composite score weights all five signals equally, which is naive. RSI and MA crossovers on an 8-month-old portfolio aren't the same quality signal as on a 5-year dataset.
+The heatmap is your dashboard — one glance tells you which tickers have consensus signals vs mixed readings
+Charts only render for tickers with a non-zero composite score — if a ticker is neutral across all five signals it gets skipped, keeping the output clean
+The composite score is deliberately simple — it's a starting point, not a trading system
+
+Honest limitation to log: The composite score weights all five signals equally, which is naive. RSI and MA crossovers on an 8-month-old portfolio aren't the same quality signal as on a 5-year dataset.
 
 Data & methodology issues
 
