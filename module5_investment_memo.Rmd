@@ -1,0 +1,446 @@
+---
+title: "Investment Committee Memorandum"
+subtitle: "Quantitative Equity Portfolio — Photonics & Technology Growth"
+author: "Zaeem Hasan | Quant Portfolio Study"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+    fig_caption: true
+    latex_engine: xelatex
+geometry: margin=1in
+fontsize: 11pt
+header-includes:
+  - \usepackage{booktabs}
+  - \usepackage{longtable}
+  - \usepackage{array}
+  - \usepackage{xcolor}
+  - \usepackage{fancyhdr}
+  - \usepackage{graphicx}
+  - \pagestyle{fancy}
+  - \fancyhf{}
+  - \fancyhead[L]{\textit{Confidential — Investment Committee Use Only}}
+  - \fancyhead[R]{\thepage}
+  - \fancyfoot[C]{\textit{Zaeem Hasan | Quant Portfolio Study}}
+  - \definecolor{darkblue}{RGB}{28, 60, 100}
+  - \definecolor{lightgray}{RGB}{245, 245, 245}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo    = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = 'center',
+  fig.pos  = 'H'
+)
+
+# ── Dependencies ──────────────────────────────────────────────────────────────
+required <- c('tidyverse','knitr','kableExtra','scales','lubridate','ggplot2','gridExtra')
+installed <- rownames(installed.packages())
+for (pkg in required) {
+  if (!pkg %in% installed) install.packages(pkg, repos='https://cran.rstudio.com/')
+}
+
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(scales)
+library(lubridate)
+library(ggplot2)
+library(gridExtra)
+
+# ── Google Drive path ─────────────────────────────────────────────────────────
+# On Posit Cloud: upload CSVs from your Google Drive quant-project folder
+# then set this path to wherever they live in your Posit project.
+DRIVE_PATH <- './'   # change if files are in a subfolder
+
+# ── Load Module outputs ───────────────────────────────────────────────────────
+prices      <- read_csv(paste0(DRIVE_PATH, 'module1_prices.csv'),
+                        show_col_types = FALSE) %>%
+               rename(date = 1) %>%
+               mutate(date = as.Date(date))
+
+returns     <- read_csv(paste0(DRIVE_PATH, 'module1_returns.csv'),
+                        show_col_types = FALSE) %>%
+               rename(date = 1) %>%
+               mutate(date = as.Date(date))
+
+perf        <- read_csv(paste0(DRIVE_PATH, 'module1_per_ticker_perf.csv'),
+                        show_col_types = FALSE)
+
+risk        <- read_csv(paste0(DRIVE_PATH, 'module2_risk_summary.csv'),
+                        show_col_types = FALSE)
+
+betas       <- read_csv(paste0(DRIVE_PATH, 'module2_betas.csv'),
+                        show_col_types = FALSE) %>%
+               rename(Ticker = 1)
+
+signals     <- read_csv(paste0(DRIVE_PATH, 'module3_signals.csv'),
+                        show_col_types = FALSE)
+
+# ── Helper: pull metric from risk summary ────────────────────────────────────
+get_metric <- function(name) {
+  as.numeric(risk %>% filter(Metric == name) %>% pull(Value))
+}
+
+sharpe      <- get_metric('Sharpe Ratio')
+sortino     <- get_metric('Sortino Ratio')
+beta_port   <- get_metric('Portfolio Beta')
+alpha_ann   <- get_metric('Alpha (ann.)')
+ann_ret     <- get_metric('Ann. Return')
+ann_vol     <- get_metric('Ann. Volatility')
+var_95      <- get_metric('VaR 95% Historical')
+cvar_95     <- get_metric('CVaR 95% Historical')
+
+portfolio_value <- perf %>%
+  summarise(total = sum(`Current Val ($)`)) %>%
+  pull(total)
+
+total_cost <- perf %>%
+  summarise(total = sum(`Cost ($)`)) %>%
+  pull(total)
+
+total_return_pct <- (portfolio_value / total_cost - 1) * 100
+```
+
+\newpage
+
+---
+
+**MEMORANDUM**
+
+**TO:** Investment Committee
+
+**FROM:** Zaeem Hasan, Quantitative Research
+
+**DATE:** `r format(Sys.Date(), '%B %d, %Y')`
+
+**RE:** Quantitative Review — Photonics & Technology Growth Portfolio
+
+**CLASSIFICATION:** Confidential
+
+---
+
+\newpage
+
+# Executive Summary
+
+This memorandum presents a quantitative review of an eleven-position equity portfolio
+concentrated in photonics, semiconductor infrastructure, and technology growth.
+The portfolio was initiated in August 2025 via two dollar-cost averaged tranches
+and has been held without rebalancing through the present date.
+
+**Key findings:**
+
+The portfolio has generated a total return of **`r round(total_return_pct, 1)`%**
+since inception against an SPY benchmark return of approximately 5% over the same period,
+representing significant alpha generation. Risk-adjusted performance is strong,
+with a Sharpe ratio of **`r round(sharpe, 2)`** and a Sortino ratio of
+**`r round(sortino, 2)`**, both materially above conventional thresholds.
+
+However, the committee should note three material risks. First, the portfolio
+carries a beta of **`r round(beta_port, 2)`** versus SPY, indicating amplified
+market sensitivity. Second, two positions — LITE and COHR — account for a
+disproportionate share of returns and exhibit a correlation of 0.72, representing
+a concentrated single-thesis bet on photonics. Third, the holding period of
+approximately eight months is insufficient to draw statistically robust conclusions
+about the strategy's long-term viability.
+
+The committee is advised to treat these results as a promising initial signal
+warranting continued monitoring rather than a validated long-term strategy.
+
+\newpage
+
+# Portfolio Overview
+
+## Construction
+
+The portfolio was constructed on August 8, 2025 with a second tranche added
+August 26, 2025, and a supplemental AMD position added September 13, 2025.
+All positions were initiated via fractional share purchases, with approximately
+\$3.00 deployed per ticker in the initial tranche.
+
+```{r portfolio-table}
+perf %>%
+  arrange(desc(`Return (%)`)) %>%
+  mutate(
+    `Cost ($)`        = dollar(`Cost ($)`, accuracy = 0.01),
+    `Entry Price`     = dollar(`Entry Price`, accuracy = 0.01),
+    `Current Price`   = dollar(`Current Price`, accuracy = 0.01),
+    `Current Val ($)` = dollar(`Current Val ($)`, accuracy = 0.01),
+    `P&L ($)`         = dollar(`P&L ($)`, accuracy = 0.01),
+    `Return (%)`      = paste0(`Return (%)`, '%')
+  ) %>%
+  kable(
+    booktabs  = TRUE,
+    caption   = 'Portfolio Positions — Inception to Present',
+    align     = c('l','r','r','r','r','r','r','r')
+  ) %>%
+  kable_styling(
+    latex_options = c('striped','hold_position','scale_down'),
+    font_size     = 9
+  ) %>%
+  row_spec(0, bold = TRUE)
+```
+
+## Sector Composition
+
+The portfolio spans five broad themes: photonics (LITE, COHR), semiconductor
+infrastructure (AVGO, MRVL, AMD), data center & networking (EQIX, ANET, VRT),
+large-cap technology (GOOG), transportation (SNDR), and commodity hedge (GLD).
+The photonics and semiconductor positions carry the highest beta and have
+been the primary return drivers.
+
+\newpage
+
+# Performance Analysis
+
+## Return Attribution
+
+```{r return-chart, fig.cap="Cumulative portfolio return vs SPY benchmark. Entry August 8, 2025.", fig.height=4}
+cum_ret <- returns %>%
+  mutate(
+    port_cum = cumprod(1 + portfolio) - 1,
+    spy_cum  = cumprod(1 + spy) - 1
+  )
+
+ggplot(cum_ret, aes(x = date)) +
+  geom_line(aes(y = port_cum * 100, colour = 'Portfolio'), linewidth = 1.0) +
+  geom_line(aes(y = spy_cum  * 100, colour = 'SPY'),       linewidth = 0.8,
+            linetype = 'dashed') +
+  geom_hline(yintercept = 0, colour = 'gray60', linewidth = 0.4) +
+  scale_colour_manual(values = c('Portfolio' = '#1C3C64', 'SPY' = '#E87040')) +
+  scale_y_continuous(labels = function(x) paste0(x, '%')) +
+  labs(x = NULL, y = 'Cumulative Return (%)', colour = NULL) +
+  theme_minimal(base_size = 10) +
+  theme(
+    legend.position  = 'bottom',
+    panel.grid.minor = element_blank()
+  )
+```
+
+## Risk-Adjusted Metrics
+
+```{r ratios-table}
+tibble(
+  Metric = c(
+    'Total Return', 'Annualized Return', 'Annualized Volatility',
+    'Sharpe Ratio', 'Sortino Ratio', 'Portfolio Beta (vs SPY)',
+    'Jensen Alpha (annualized)', 'Max Drawdown (approx.)'
+  ),
+  Value = c(
+    paste0(round(total_return_pct, 1), '%'),
+    paste0(round(ann_ret * 100, 1), '%'),
+    paste0(round(ann_vol * 100, 1), '%'),
+    round(sharpe,    2),
+    round(sortino,   2),
+    round(beta_port, 2),
+    paste0(round(alpha_ann * 100, 1), '%'),
+    '-10.4%'
+  ),
+  Commentary = c(
+    'Strong absolute return over 8-month period',
+    'Annualized from daily returns; short sample caveat applies',
+    'Elevated; consistent with high-beta growth portfolio',
+    'Above 2.0 — materially exceeds the conventional 1.0 threshold',
+    'Penalizes downside volatility only; higher than Sharpe is favorable',
+    'Portfolio amplifies SPY moves by approximately 2x',
+    'Return above what beta exposure alone explains',
+    'Observed during Nov-Dec 2025 drawdown episode'
+  )
+) %>%
+  kable(
+    booktabs = TRUE,
+    caption  = 'Risk-Adjusted Performance Summary',
+    align    = c('l','r','l')
+  ) %>%
+  kable_styling(
+    latex_options = c('striped','hold_position'),
+    font_size     = 9
+  ) %>%
+  row_spec(0, bold = TRUE)
+```
+
+\newpage
+
+# Risk Assessment
+
+## Value at Risk
+
+Three VaR methodologies were applied to the portfolio daily return series.
+Historical simulation is the committee's primary reference given the
+non-normal return distribution observed (fat left tail relative to parametric fit).
+
+```{r var-table}
+tibble(
+  Method        = c('Historical Simulation', 'Parametric (Variance-Covariance)', 'Monte Carlo (10,000 simulations)'),
+  `VaR 95% (%)` = c(paste0(round(var_95 * 100, 2), '%'), '-3.06%', '-3.08%'),
+  `VaR 95% ($)` = c(
+    dollar(portfolio_value * var_95,  accuracy = 0.01),
+    dollar(portfolio_value * -0.0306, accuracy = 0.01),
+    dollar(portfolio_value * -0.0308, accuracy = 0.01)
+  ),
+  `CVaR 95% (%)` = c(paste0(round(cvar_95 * 100, 2), '%'), '-3.92%', '-3.95%'),
+  Note = c(
+    'Primary method — no distributional assumption',
+    'Underestimates tail risk given observed fat tails',
+    'Consistent with parametric; normal distribution assumed'
+  )
+) %>%
+  kable(
+    booktabs = TRUE,
+    caption  = 'Value at Risk Comparison — Three Methodologies',
+    align    = c('l','r','r','r','l')
+  ) %>%
+  kable_styling(
+    latex_options = c('striped','hold_position','scale_down'),
+    font_size      = 9
+  ) %>%
+  row_spec(0, bold = TRUE) %>%
+  row_spec(1, bold = TRUE)
+```
+
+The historical simulation VaR of `r paste0(round(abs(var_95)*100,2),'%')` exceeds
+the parametric estimate, confirming fat tails in the return distribution.
+On any given trading day, there is a 5% probability of a portfolio loss exceeding
+this threshold. The CVaR of `r paste0(round(abs(cvar_95)*100,2),'%')` represents
+the expected loss conditional on breaching that threshold.
+
+## Beta & Concentration Risk
+
+```{r beta-chart, fig.cap="Per-ticker beta versus SPY. Red indicates beta above 1.5.", fig.height=3.5}
+betas %>%
+  arrange(Beta) %>%
+  mutate(
+    Ticker = factor(Ticker, levels = Ticker),
+    colour = case_when(
+      Beta > 1.5 ~ 'High (>1.5)',
+      Beta > 1.0 ~ 'Moderate (1.0-1.5)',
+      TRUE       ~ 'Low (<1.0)'
+    )
+  ) %>%
+  ggplot(aes(x = Beta, y = Ticker, fill = colour)) +
+  geom_col() +
+  geom_vline(xintercept = 1.0, linetype = 'dashed', colour = 'gray40', linewidth = 0.6) +
+  scale_fill_manual(values = c(
+    'High (>1.5)'        = '#e74c3c',
+    'Moderate (1.0-1.5)' = '#3498db',
+    'Low (<1.0)'         = '#2ecc71'
+  )) +
+  labs(x = 'Beta vs SPY', y = NULL, fill = 'Beta Category') +
+  theme_minimal(base_size = 10) +
+  theme(
+    legend.position  = 'bottom',
+    panel.grid.minor = element_blank()
+  )
+```
+
+LITE and COHR exhibit the highest betas (~3.0), meaning a 10% decline in SPY
+would be expected to produce approximately a 30% decline in these positions
+under normal market conditions. GLD (0.53) and EQIX (0.44) provide partial
+offset, though their portfolio weight is insufficient to materially dampen
+aggregate drawdown.
+
+\newpage
+
+# Signal Analysis
+
+## Current Technical Posture
+
+As of `r format(Sys.Date(), '%B %d, %Y')`, the signal dashboard indicates
+a broadly neutral technical environment across the portfolio.
+
+```{r signals-table}
+signals %>%
+  select(Ticker, Price, RSI, `RSI Signal`, `MA Signal`, `BB Signal`, `Z Signal`, `Composite Score`) %>%
+  arrange(desc(`Composite Score`)) %>%
+  mutate(Price = dollar(Price, accuracy = 0.01)) %>%
+  kable(
+    booktabs = TRUE,
+    caption  = paste0('Technical Signal Summary — ', format(Sys.Date(), '%B %d, %Y')),
+    align    = c('l','r','r','l','l','l','l','r')
+  ) %>%
+  kable_styling(
+    latex_options = c('striped','hold_position','scale_down'),
+    font_size     = 9
+  ) %>%
+  row_spec(0, bold = TRUE)
+```
+
+The absence of RSI extremes across all eleven positions is consistent with
+a macro volatility compression event (April 2026 tariff environment) rather
+than stock-specific exhaustion. AVGO's death cross and MRVL's extended
+z-score are the two positions warranting closest near-term monitoring.
+
+\newpage
+
+# Limitations & Study Constraints
+
+The committee should weight the following material limitations when
+evaluating the findings of this study:
+
+**Sample size.** The holding period of approximately eight months (165 trading days)
+is insufficient to achieve statistical significance on any of the reported ratios.
+Sharpe, Sortino, and alpha estimates carry wide confidence intervals at this sample size
+and should not be extrapolated as long-term expectations.
+
+**Benchmark selection.** SPY underperformed materially during the study period (~5%),
+making outperformance easier to achieve. A fairer benchmark comparison would include
+QQQ and a photonics-specific ETF. This will be addressed in v2 of the study.
+
+**Concentration.** LITE and COHR are functionally a single photonics thesis,
+correlated at 0.72. The eleven-position count overstates actual diversification.
+
+**Static beta assumption.** Beta was calculated as a single point estimate over
+the full holding period. Rolling beta analysis — not yet implemented — would
+likely reveal significant regime variation, particularly around the February 2026
+drawdown and the April 2026 tariff volatility.
+
+**Portfolio value hardcoded.** The VaR dollar estimates in Module 2 were calculated
+against a static portfolio value input rather than the dynamically evolving
+portfolio NAV. This will be corrected in v2.
+
+**No transaction cost modeling.** Spreads, platform fees, and tax treatment
+are excluded from all return calculations.
+
+\newpage
+
+# Conclusion & Recommendation
+
+The portfolio has generated exceptional risk-adjusted returns over its eight-month
+holding period, with a Sharpe ratio of `r round(sharpe, 2)` and annualized alpha
+of `r paste0(round(alpha_ann * 100, 1), '%')` above the SPY benchmark.
+The photonics thesis — anchored by LITE and COHR — has been the primary return
+driver and remains structurally intact based on current technical signals.
+
+**The committee is presented with the following observations:**
+
+1. The risk-adjusted performance merits continued position monitoring
+   and potential scale-up subject to position sizing discipline.
+
+2. AVGO warrants a watch flag given its death cross configuration and
+   underperformance relative to portfolio peers.
+
+3. MRVL's z-score extension and proximity to the upper Bollinger Band
+   suggest limited near-term upside without a fundamental catalyst.
+
+4. The concentration in LITE and COHR represents the single largest
+   structural risk in the portfolio. A photonics sector correction
+   would be expected to produce outsized drawdown relative to the benchmark.
+
+5. The study's limitations are material and documented. A minimum of
+   twelve additional months of data is recommended before drawing
+   definitive strategic conclusions.
+
+---
+
+*This memorandum was produced as part of a quantitative research study.
+All positions are live holdings. Data sourced from Yahoo Finance via yfinance.
+Risk calculations implemented in Python (Modules 1–3) with this memo
+compiled in R Markdown (Module 5). Full methodology available in the
+accompanying GitHub repository.*
+
+---
