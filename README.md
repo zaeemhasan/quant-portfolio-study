@@ -1,4 +1,8 @@
 # quant-portfolio-study
+
+Honest limitation to log: 
+The composite score weights all five signals equally, which is naive. RSI and MA crossovers on an 8-month-old portfolio aren't the same quality signal as on a 5-year dataset.
+
 Data & methodology issues
 
 165 days is thin — need to caveat every ratio with confidence intervals or at minimum note the sample size limitation
@@ -18,3 +22,5 @@ Presentation issues
 Chart titles still say "Entry Aug 2024" in some places
 The per-ticker return chart doesn't account for the partial sells — LITE's 601% is calculated as if you still hold the full original position, but you sold some in January at $408
 No transaction cost modeling — even fractional share platforms have spreads
+
+
